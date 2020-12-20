@@ -1,0 +1,28 @@
+import cv2    
+cap = cv2.VideoCapture ( 'video.avi') # capture the fream from the video
+
+car_cascade= cv2.CascadeClassifier('cars.xml') #trained XML classifiers describes some feactures of some object we want to deteted
+
+while True:#loop runs if captureing has been instialized
+
+    ret,frames = cap.read() #rwads frams from a video
+
+    gray = cv2.cvtColor(frames,cv2.COLOR_BGR2GRAY)
+    #convert to gray scale of each frames
+
+    #detect cars of different sizes in the input image
+    cars = car_cascade.detectMultiScale(gray,1.1,1)
+
+    # to draw a rectangle in each cars
+    for ( x,y,w,h) in cars :
+        cv2.rectangle( frames,(x,y),(x+w,y+h),(0,0,225),2)
+
+
+     #display frames in a window  
+        cv2.imshow('video2', frames)
+
+         #wait for Esc key to stop
+        if cv2.waitKey(33)== 27:
+            break
+#De-allocate any associated memory usage
+cv2.destroyAllAllWindows()
