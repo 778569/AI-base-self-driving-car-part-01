@@ -1,0 +1,98 @@
+// Capture the vehicle 
+// using the pre train model ( Open CV) python
+
+import cv2 # OpenCV Python program to detect cars in video frame 
+           # import libraries of python OpenCV
+
+fxR=823.98175049
+fyR=818.34320068
+cxR=297.0671601 
+cyR=215.63753475
+
+fxL=802.47924805
+fyL=802.65380859
+cxL=331.67814387
+cyL=237.88057137
+
+ps=0.0028
+focal_length=fyR*ps
+baseLine=110
+
+car_clsfr=cv2.CascadeClassifier('Cascades/Vehicle and pedestrain detection/cars.xml')
+##car_clsfr=cv2.CascadeClassifier('Cascades/Vehicle and pedestrain detection/cars.xml')
+
+captureL=cv2.VideoCapture(1)
+captureR=cv2.VideoCapture(2)
+
+carL=0
+carR=0
+
+carL_mid=[]
+carR_mid=[]
+
+#cv2.imshow('bike',bike_img)
+
+count=0
+
+while(True):
+
+    ret,imgL=captureL.read()
+    ret,imgR=captureR.read()
+
+    #(height,width)=img.shape[:2]
+    #img=cv2.resize(img,(int(width/2),int(height/2)))
+    (heightL,widthL)=imgL.shape[:2]
+    (heightR,widthR)=imgR.shape[:2]
+
+
+    blurL=cv2.blur(imgL,(3,3))
+    blurR=cv2.blur(imgR,(3,3))
+    
+    grayL=cv2.cvtColor(blurL,cv2.COLOR_BGR2GRAY)
+    grayR=cv2.cvtColor(blurR,cv2.COLOR_BGR2GRAY)
+    
+    carsL=car_clsfr.detectMultiScale(grayL,scaleFactor=1.1,minNeighbors=7,minSize=(100, 100))
+    carsR=car_clsfr.detectMultiScale(grayR,scaleFactor=1.1,minNeighbors=7,minSize=(100, 100))
+
+    
+    for (x,y,w,h) in carsL:
+
+        carL=1
+
+        carLx=x
+        carLy=y
+        
+        carL_mid=[int(x+(w/2.0)),int(y+(h/2.0))]
+        
+        cv2.rectangle(imgL,(x,y),(x+w,y+h),(0,255,0),2)
+        cv2.rectangle(imgL,(x-1,y-40),(x+w+1,y),(0,255,0),-1)
+        cv2.putText(imgL,'VEHICLE',(x+4,y-15),cv2.FONT_HERSHEY_SIMPLEX,0.8,(255,255,255),3)
+        cv2.circle(imgL,tuple(carL_mid),5,(0,0,255),-1)
+        
+
+    for (x,y,w,h) in carsR:
+
+        carR=1
+
+        carRx=x
+        carRy=y
+        
+        carR_mid=[int(x+(w/2.0)),int(y+(h/2.0))]
+        
+        cv2.rectangle(imgR,(x,y),(x+w,y+h),(0,255,0),2)
+        cv2.rectangle(imgR,(x-1,y-40),(x+w+1,y),(0,255,0),-1)
+        cv2.putText(imgR,'VEHICLE',(x+4,y-15),cv2.FONT_HERSHEY_SIMPLEX,0.8,(255,255,255),3)
+        cv2.circle(imgR,tuple(carR_mid),5,(0,0,255),-1)
+        
+    if(carL==1 and carR==1):
+
+        disp=abs(carR_mid[0]-carL_mid[0])
+        depth=(focal_length*float(baseLine))/(float(disp)*ps)
+        cv2.putText(imgL,str(round(depth-100,2))+'mm',(carLx+150,carLy-15),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),3)
+        cv2.putText(imgR,str(round(depth-100,2))+'mm',(carRx+150,carRy-15),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),3)
+
+    cv2.imshow('LIVE_L',imgL)
+    cv2.imshow('LIVE_R',imgL)
+    cv2.waitKey(1)
+
+    carL,carR=0,0
