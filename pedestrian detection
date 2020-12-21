@@ -1,0 +1,41 @@
+import cv2
+import imutils
+from imutils.object_detection import non_max_suppression
+import numpy as np
+
+car_clsfr=cv2.CascadeClassifier('Cascades\Vehicle and pedestrain detection\pedestrian.xml')
+
+camera=cv2.VideoCapture('Acer Liquid S2 video sample - cars and pedestrians (4K).mp4')
+
+#camera=cv2.VideoCapture('right_Trim.mp4')
+
+hog = cv2.HOGDescriptor()
+hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+
+while(True):
+
+    ret,img=camera.read()
+    #(width,height)=img.shape[:2]
+    #img=cv2.resize(img,(int(height/2),int(width/2)))
+    img = imutils.resize(img, width=min(400, img.shape[1]))
+    
+    gray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+
+    (rects, weights) = hog.detectMultiScale(gray)
+    
+
+    for (x,y,w,h) in rects:
+
+        cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
+        cv2.putText(img,'Pedestrian',(x,y-10),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,255,0),2)
+
+    rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
+    pick = non_max_suppression(rects, probs=None, overlapThresh=0.65)
+ 
+	# draw the final bounding boxes
+    for (xA, yA, xB, yB) in pick:
+        cv2.rectangle(img, (xA, yA), (xB, yB), (0, 0, 255), 2)
+        
+    cv2.imshow('LIVE',img)
+    cv2.waitKey(1)
+#,scaleFactor=1.1,minNeighbors=7,minSize=(50, 50)
